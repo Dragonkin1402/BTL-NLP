@@ -11,6 +11,9 @@
 /data/annotations/review_log.csv
 /reports/data_quality_report.md
 /reports/excluded_items.csv
+/reports/experiments.csv
+/reports/*_predictions_*.csv
+/reports/*_numeric_claims_*.csv
 *.pdf
 __pycache__/
 *.py[cod]

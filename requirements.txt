@@ -1,0 +1,5 @@
+datasets
+numpy
+pandas
+scikit-learn
+rouge-score==0.1.2
