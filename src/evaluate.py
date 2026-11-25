@@ -31,6 +31,10 @@ EXPERIMENT_COLUMNS = [
     "split",
     "method",
     "model_id",
+    "run_label",
+    "prompt_version",
+    "temperature",
+    "api_endpoint",
     "run_commit",
     "protocol_tag",
     "protocol_commit",
@@ -62,6 +66,10 @@ PREDICTION_COLUMNS = [
     "source_revision",
     "run_commit",
     "model_id",
+    "run_label",
+    "prompt_version",
+    "temperature",
+    "api_endpoint",
     "postcheck_applied",
     "summary_before_postcheck",
     "summary_after_postcheck",
@@ -409,6 +417,10 @@ def main() -> None:
     parser.add_argument("--experiment", choices=("E0", "E1", "E2"), default="E0")
     parser.add_argument("--predictions", type=Path)
     parser.add_argument("--model-id")
+    parser.add_argument("--run-label")
+    parser.add_argument("--prompt-version")
+    parser.add_argument("--temperature", type=float)
+    parser.add_argument("--api-endpoint")
     parser.add_argument("--run-commit")
     parser.add_argument("--config-tag", default="configs-frozen")
     parser.add_argument("--config-tag-commit")
@@ -439,23 +451,43 @@ def main() -> None:
         parser.error("--config-tag-commit is only valid for a test run")
 
     if args.experiment == "E0":
-        if args.predictions or args.model_id:
-            parser.error("E0 Lead-3 is generated locally; do not pass --predictions or --model-id")
+        if any((args.predictions, args.model_id, args.prompt_version, args.temperature, args.api_endpoint)):
+            parser.error("E0 Lead-3 is generated locally; do not pass model or prediction metadata")
         method = "Lead-3"
         model_id = "Lead-3"
+        prompt_version = ""
+        temperature = ""
+        api_endpoint = ""
         postcheck_policy = "not_applicable"
     else:
-        if not args.predictions or not args.model_id:
-            parser.error("E1/E2 require --predictions and --model-id")
+        if not all(
+            (
+                args.predictions,
+                args.model_id,
+                args.prompt_version,
+                args.temperature is not None,
+                args.api_endpoint,
+            )
+        ):
+            parser.error(
+                "E1/E2 require --predictions, --model-id, --prompt-version, --temperature, and --api-endpoint"
+            )
         method = "prompted_model"
         model_id = args.model_id
+        prompt_version = args.prompt_version
+        temperature = args.temperature
+        api_endpoint = args.api_endpoint
         postcheck_policy = (
             args.postcheck_policy if args.experiment == "E2" else "not_applicable"
         )
 
+    run_label = args.run_label or ""
+    if run_label and not re.fullmatch(r"[A-Za-z0-9._-]+", run_label):
+        parser.error("--run-label may contain only letters, numbers, '.', '_' and '-'")
     output_dir = args.output_dir.resolve() if args.output_dir else root / "reports"
-    predictions_path = output_dir / f"{args.split}_predictions_{args.experiment}.csv"
-    claims_path = output_dir / f"{args.split}_numeric_claims_{args.experiment}.csv"
+    suffix = f"_{run_label}" if run_label else ""
+    predictions_path = output_dir / f"{args.split}_predictions_{args.experiment}{suffix}.csv"
+    claims_path = output_dir / f"{args.split}_numeric_claims_{args.experiment}{suffix}.csv"
     experiments_path = output_dir / "experiments.csv"
     if args.split == "test":
         if predictions_path.exists():
@@ -507,8 +539,11 @@ def main() -> None:
             missing = sorted(set(articles) - set(predictions))
             extra = sorted(set(predictions) - set(articles))
             parser.error(f"Prediction IDs differ; missing={missing}, extra={extra}")
-        if any(not before or not after for before, after in predictions.values()):
-            parser.error("Prediction file contains an empty summary")
+        if any(
+            not before or (not after and args.experiment != "E2")
+            for before, after in predictions.values()
+        ):
+            parser.error("Prediction file contains an empty required summary")
 
     gold_facts = load_gold_facts(numeric_path)
     scorer = RougeScorer(
@@ -537,6 +572,10 @@ def main() -> None:
                 "source_revision": source_revision,
                 "run_commit": run_commit,
                 "model_id": model_id,
+                "run_label": run_label,
+                "prompt_version": prompt_version,
+                "temperature": temperature,
+                "api_endpoint": api_endpoint,
                 "postcheck_applied": args.experiment == "E2",
                 "summary_before_postcheck": before,
                 "summary_after_postcheck": after,
@@ -603,6 +642,10 @@ def main() -> None:
         "split": args.split,
         "method": method,
         "model_id": model_id,
+        "run_label": run_label,
+        "prompt_version": prompt_version,
+        "temperature": temperature,
+        "api_endpoint": api_endpoint,
         "run_commit": run_commit,
         "protocol_tag": PROTOCOL_TAG,
         "protocol_commit": PROTOCOL_COMMIT,
