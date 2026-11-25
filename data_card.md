@@ -105,7 +105,9 @@ Từ 265,729 dòng gốc, giữ 39,878 bài thuộc `Kinh doanh` hoặc `Bất �
 
 ## 11. Gold & Evaluation Protocol
 
-Guideline v1.0 và hash khóa được ghi tại `data/annotations/guideline_lock.json`. Protocol đánh giá đã chốt trong [`evaluation_protocol.md`](evaluation_protocol.md): tokenization theo âm tiết, ROUGE-L chính, ROUGE-1/2 phụ; trích ứng viên số liệu bằng regex nhưng xác minh đúng/sai theo nguồn và ngữ cảnh; rubric factuality; chọn cấu hình trên dev rồi chạy test đúng một lần. Commit đóng băng protocol được gắn tag [`protocol-frozen`](https://github.com/Dragonkin1402/BTL-NLP/tree/protocol-frozen) tại `072666a471383d8596c03c28a70ec2c2ad6ee363`. Chưa có kết quả mô hình nào được báo cáo ở đây.
+Guideline v1.0 và hash khóa được ghi tại `data/annotations/guideline_lock.json`. Protocol đánh giá đã chốt trong [`evaluation_protocol.md`](evaluation_protocol.md): tokenization theo âm tiết, ROUGE-L chính, ROUGE-1/2 phụ; trích ứng viên số liệu bằng regex nhưng xác minh đúng/sai theo nguồn và ngữ cảnh; rubric factuality; chọn cấu hình trên dev rồi chạy test đúng một lần. Commit đóng băng protocol được gắn tag [`protocol-frozen`](https://github.com/Dragonkin1402/BTL-NLP/tree/protocol-frozen) tại `072666a471383d8596c03c28a70ec2c2ad6ee363`.
+
+Dev-only E0 Lead-3 baseline đã chạy trên 10 bài tại commit `c9ba26c9c94c98ea3e69efc2a0c0d8d8ad7e4ee`: macro ROUGE-1/2/L lần lượt là 0.3921/0.2086/0.2516. Có 16/40 ứng viên đạt khớp bề mặt chính xác cả giá trị và đơn vị (40%); đây **không phải** numeric precision hay kết luận factuality, các metric ngữ nghĩa cần người rà soát. E1/E2 và test chưa chạy. Bảng theo từng bài và đầu ra được giữ cục bộ, không tái phân phối.
 
 ## 12. Biases, Ethics & Risks
 
