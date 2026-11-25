@@ -6,4 +6,11 @@
 /data/processed/selected_articles.jsonl
 /data/processed/numeric_facts_audit.csv
 /data/annotations/gold_summaries.csv
+/data/annotations/gold_numeric_facts.csv
+/data/annotations/pilot_drafts.csv
+/data/annotations/review_log.csv
 /reports/data_quality_report.md
+/reports/excluded_items.csv
+*.pdf
+__pycache__/
+*.py[cod]
