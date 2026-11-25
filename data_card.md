@@ -92,6 +92,7 @@ Từ 265,729 dòng gốc, giữ 39,878 bài thuộc `Kinh doanh` hoặc `Bất �
 ## 9. Quality Checks
 
 - Checker tại `src/check_gold.py` đã chạy với `--locked-version v1.0`: **0 ERROR, 23 REVIEW, 14 WARN**; kết quả ghi trong [`reports/gold_check_report.md`](reports/gold_check_report.md). Cả 50 test dùng v1.0; REVIEW/WARN là cờ cần diễn giải, không tự động đồng nghĩa lỗi annotation. Tóm tắt tham chiếu test không được chỉnh âm thầm sau khóa.
+- REVIEW gồm `article_dot_decimal` 11, `low_number_article_has_numbers` 11 và `unit_unverifiable` 1. Cả 14 WARN là `unit_shortened`, trên 10 bài. Ý nghĩa và ảnh hưởng riêng của ROUGE, numeric precision/hallucination và gold recall được ghi trong báo cáo chất lượng.
 - Kiểm tra mẫu cặp tiêu đề phát hiện trường hợp cùng tiêu đề nhưng nội dung khác đáng kể; xem ghi chú ở [`reports/data_quality_report.md`](reports/data_quality_report.md). Rà soát này do trợ lý thực hiện để sàng lọc, chưa thay thế xác nhận độc lập của A1/A2.
 - Rà soát 12 ứng viên số liệu tìm thấy một trường hợp cần đối chiếu đơn vị theo ngữ cảnh và một ứng viên định nghĩa không nên tính là chỉ báo kinh tế. Chi tiết và ghi chú 8 bài `khac` nằm trong báo cáo chất lượng cục bộ.
 - License và quyền tái phân phối chưa xác minh; chất lượng dữ liệu không đồng nghĩa quyền phát hành.
@@ -104,7 +105,7 @@ Từ 265,729 dòng gốc, giữ 39,878 bài thuộc `Kinh doanh` hoặc `Bất �
 
 ## 11. Gold & Evaluation Protocol
 
-Guideline v1.0 và hash khóa được ghi tại `data/annotations/guideline_lock.json`. Protocol đánh giá đã chốt trong [`evaluation_protocol.md`](evaluation_protocol.md): tokenization theo âm tiết, ROUGE-L chính, ROUGE-1/2 phụ; trích ứng viên số liệu bằng regex nhưng xác minh đúng/sai theo nguồn và ngữ cảnh; rubric factuality; chọn cấu hình trên dev rồi chạy test đúng một lần. Chưa có kết quả mô hình nào được báo cáo ở đây.
+Guideline v1.0 và hash khóa được ghi tại `data/annotations/guideline_lock.json`. Protocol đánh giá đã chốt trong [`evaluation_protocol.md`](evaluation_protocol.md): tokenization theo âm tiết, ROUGE-L chính, ROUGE-1/2 phụ; trích ứng viên số liệu bằng regex nhưng xác minh đúng/sai theo nguồn và ngữ cảnh; rubric factuality; chọn cấu hình trên dev rồi chạy test đúng một lần. Commit đóng băng protocol được gắn tag [`protocol-frozen`](https://github.com/Dragonkin1402/BTL-NLP/tree/protocol-frozen) tại `072666a471383d8596c03c28a70ec2c2ad6ee363`. Chưa có kết quả mô hình nào được báo cáo ở đây.
 
 ## 12. Biases, Ethics & Risks
 
@@ -117,12 +118,13 @@ Guideline v1.0 và hash khóa được ghi tại `data/annotations/guideline_loc
 
 - Không dùng làm căn cứ giao dịch/chọn cổ phiếu, tư vấn tài chính, quyết định tín dụng, quyết định chính sách hoặc phát ngôn công khai nếu chưa kiểm chứng độc lập.
 - Không suy diễn độ chính xác toàn corpus từ 60 bài hoặc từ ROUGE; ROUGE đo trùng lặp bề mặt, không chứng minh factuality.
-- Nhãn topic dựa từ khóa, regex số liệu có false positive/false negative, và title-only dedup có thể loại nhầm bản tin khác nhau.
+- Nhãn topic dựa từ khóa, regex số liệu có false positive/false negative. Mẫu audit cho thấy 4/9 cặp cùng tiêu đề có tương đồng chuỗi nội dung dưới 0.35; title-only dedup có thể loại nhầm bài khác nhau. Đây là giới hạn về độ bao phủ/mẫu chọn, không phải bằng chứng rò rỉ giữa dev và test.
 - Không tái phân phối bài báo, trích đoạn nguồn hoặc các file chứa nội dung cho đến khi quyền được xác nhận.
 
 ## 14. Reproducibility & Access Instructions
 
 - Dùng `datasets` để tải đúng revision `bd8d2a865c8981d34cb9d85f69f62bda7c40b520`; `python scripts/inspect_news_datasets.py` in schema/phân bố và cập nhật metadata. `python data/prepare_data.py` dựng lại pipeline trong một thư mục output mới; script từ chối ghi đè split đã khóa.
 - Retrieved at của snapshot đã dùng: `2026-11-25T09:51:48+07:00`. VietOnlineNews không có trường ngày đăng; `published_at` ghi `unknown`.
+- Nhật ký sử dụng AI: [`Nhat_ky_su_dung_AI.md`](Nhat_ky_su_dung_AI.md); các pre-audit cần người trong nhóm xác nhận vẫn được đánh dấu pending.
 - ID mẫu công khai chỉ có thể phát hành theo chính sách quyền dữ liệu của lớp; không kèm toàn văn. Full text và annotation có câu nguồn vẫn ở local.
 - Điều kiện còn mở trước nghiệm thu/phát hành D1: xác nhận license/quyền tái phân phối của dataset và các bài báo bằng văn bản.
