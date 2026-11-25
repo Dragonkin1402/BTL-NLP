@@ -2,14 +2,14 @@
 
 ## 1. Tóm tắt
 
-Chọn `VLUS06/VietOnlineNews` làm dataset chính cho bài toán phân loại chủ đề tin tức tiếng Việt. Đây là bộ 13 lớp; nhãn mục tiêu là `category`. Không dùng các dataset tóm tắt tin như `Linhz/Vietnews` hoặc `harouzie/vietnews`.
+Chọn `VLUS06/VietOnlineNews` làm nguồn bài báo chính cho đề tài tóm tắt tin kinh tế tiếng Việt có kiểm chứng dữ kiện. Dataset gốc có nhãn phân loại chủ đề 13 lớp (`category`), nhưng nhãn này không phải nhãn tóm tắt. Gold của BTL được nhóm tự xây dựng trên 60 bài chọn lọc (10 dev, 50 test), gồm tóm tắt tham chiếu và phiếu dữ kiện số. Không dùng các dataset tóm tắt tin như `Linhz/Vietnews` hoặc `harouzie/vietnews`.
 
 ## 2. Dataset snapshot
 
 | Thuộc tính | VietOnlineNews |
 |---|---|
 | Hugging Face ID | [`VLUS06/VietOnlineNews`](https://huggingface.co/datasets/VLUS06/VietOnlineNews) |
-| Ngôn ngữ / tác vụ | Tiếng Việt / phân loại chủ đề đa lớp, single-label |
+| Ngôn ngữ / tác vụ | Tiếng Việt / dataset gốc phân loại chủ đề đơn nhãn; BTL tạo gold tóm tắt tin kinh tế và dữ kiện số |
 | Tổng số dòng | 265,729 |
 | Cột | `id, title, description, content, category` |
 | Retrieved at | `2026-11-25T09:51:48+07:00` |
@@ -27,8 +27,8 @@ Hub README mô tả dữ liệu từ VietnamNet, Thanh Niên và Tuổi Trẻ, t
 
 ## 3. Mục đích sử dụng
 
-- Phù hợp: baseline và đánh giá phân loại chủ đề tin tức tiếng Việt.
-- Giới hạn: phân bố lớp có thể mất cân bằng; nhãn là `category`, nhưng hướng dẫn gán nhãn/kiểm định độc lập chưa được xác minh.
+- Phù hợp: làm nguồn bài báo cho bộ gold 60 bài của BTL, phục vụ đánh giá tóm tắt tin kinh tế và bảo toàn dữ kiện số.
+- Giới hạn: dataset gốc không cung cấp nhãn tóm tắt; `category` chỉ là nhãn chủ đề. Tóm tắt và phiếu dữ kiện do nhóm tạo, cần được đánh giá theo quy trình annotation dưới đây.
 - Chỉ dùng kết quả theo split và revision đã ghi; không suy rộng sang toàn bộ báo chí Việt Nam.
 
 ## 4. License và quy tắc lưu trữ
@@ -75,7 +75,15 @@ Split sizes quan sát được khi tải revision đã pin ở trên khác với
 
 ## 6. Tái lập
 
-Chạy `python scripts/inspect_news_datasets.py` từ thư mục `BTL` sau khi cài `datasets`. Script tải theo revision đã pin, in schema/số dòng/phân bố, cập nhật Data Card và ghi danh sách ID khớp. Không lưu nội dung toàn văn ra workspace.
+Chạy `python scripts/inspect_news_datasets.py` từ thư mục `BTL` sau khi cài `datasets`. Script tải theo revision đã pin, in schema/số dòng/phân bố, cập nhật Data Card, ghi danh sách ID khớp và metadata schema. Không lưu nội dung toàn văn từ lần kiểm tra này ra workspace.
+
+## 7. Annotation Process và Quality Checks
+
+- Bộ gold gồm 60 bài: 10 dev và 50 test. Cả 60 dòng tóm tắt ghi `guideline_version = v1.0`; nguồn bản nháp ghi `llm_edited`.
+- Nhật ký ghi nhận 31/50 bài test được người thứ hai rà soát (62%); cả 31 quyết định là `keep`, không ghi nhận bất đồng hoặc mục `unresolved`. 19 bài còn lại có trạng thái `annotated`, không có reviewer độc lập trong metadata; 7 bài trong nhóm này có cờ REVIEW của checker và đã được A1 tự kiểm, ghi rõ là self-check (không tính vào rà soát chéo).
+- Trên dev, 7/10 bài có trạng thái `reviewed`; 3/10 ở trạng thái `annotated`. Tính cả dev và test, 38/60 bài (63,3%) có trạng thái `reviewed`.
+- Trong pilot dev, 5 bài có bất đồng được ghi nhận: loại A xuất hiện ở 4/5 bài (80%), loại B ở 5/5 (100%), loại C ở 0/5. Các loại có thể chồng lấp trên cùng một bài; nhật ký có resolution cho cả 5 và không có mục ghi `unresolved`.
+- Chạy `python src/check_gold.py --locked-version v1.0` từ thư mục `BTL`: **0 ERROR, 23 REVIEW, 14 WARN**. Cả 50 test dùng v1.0; không có lỗi `guideline_changed_after_lock`. Các cờ REVIEW đã có kiểm tra thủ công trong nhật ký; REVIEW/WARN là cờ tự động, không phải bất đồng nhãn. Xem [báo cáo checker](reports/gold_check_report.md); chi tiết review nằm trong `data/annotations/review_log.csv` (bản cục bộ, không đưa lên repo công khai).
 
 ## 10. Lịch sử chia tập và khóa test
 
@@ -96,4 +104,4 @@ Chạy `python scripts/inspect_news_datasets.py` từ thư mục `BTL` sau khi c
 | **Tổng** | **2** | **8** | **10** |
 
 - Danh sách đã ghi: [`dev_ids.txt`](data/splits/dev_ids.txt), [`test_ids.txt`](data/splits/test_ids.txt); lịch sử: [`split_history.json`](data/splits/split_history.json). Chỉ đổi split cho 20/60 bài; test gồm 50 bài.
-- Split files đã được tạo trước khi viết gold. **Chưa thể commit/khóa bằng Git:** thư mục workspace hiện không nằm trong Git repository; cần chuyển/copy các file ID sang repository chính và commit trước khi gắn nhãn.
+- Split files được tạo trước khi viết gold. Gold test hiện có đủ 50 tóm tắt v1.0; checker cho 0 ERROR. Mã nguồn, Data Card, báo cáo checker và danh sách ID có thể lưu trong repository công khai; toàn văn bài báo cùng các CSV annotation chứa tóm tắt/câu nguồn tiếp tục ở local vì chưa xác minh quyền tái phân phối.
