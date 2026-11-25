@@ -149,67 +149,59 @@ def render_data_card(
         f"| `{marker}` | {marker_counts[marker]:,} |"
         for marker in ECONOMIC_MARKERS
     )
-    return f"""# Data Card — VietOnlineNews (dataset chính)
+    return f"""# Data Card — VietOnlineNews
 
-## 1. Tóm tắt
+## 1. Dataset Summary & Intended Use
 
-Chọn `VLUS06/VietOnlineNews` làm nguồn bài báo chính cho đề tài tóm tắt tin kinh tế tiếng Việt có kiểm chứng dữ kiện. Dataset gốc có nhãn phân loại chủ đề 13 lớp (`category`), nhưng nhãn này không phải nhãn tóm tắt. Gold của BTL được nhóm tự xây dựng trên 60 bài chọn lọc (10 dev, 50 test), gồm tóm tắt tham chiếu và phiếu dữ kiện số. Không dùng các dataset tóm tắt tin như `Linhz/Vietnews` hoặc `harouzie/vietnews`.
+Nguồn dữ liệu chính của BTL là `VLUS06/VietOnlineNews`, dùng để xây dựng bộ tham chiếu cho tóm tắt tin kinh tế tiếng Việt và kiểm tra độ bảo toàn dữ kiện định lượng. Dataset gốc là dữ liệu phân loại chủ đề, không có nhãn tóm tắt. Nhóm tự tạo gold cho 60 bài (10 dev, 50 test). Không dùng các dataset tóm tắt tin tên gần giống như `Linhz/Vietnews` hoặc `harouzie/vietnews`.
 
-## 2. Dataset snapshot
+## 2. Dataset Sources & Versions
 
 | Thuộc tính | VietOnlineNews |
 |---|---|
 | Hugging Face ID | [`VLUS06/VietOnlineNews`](https://huggingface.co/datasets/VLUS06/VietOnlineNews) |
-| Ngôn ngữ / tác vụ | Tiếng Việt / dataset gốc phân loại chủ đề đơn nhãn; BTL tạo gold tóm tắt tin kinh tế và dữ kiện số |
-| Tổng số dòng | {total_rows:,} |
-| Cột | `{", ".join(columns)}` |
-| Retrieved at | `{retrieved_at}` |
+| Ngôn ngữ / tác vụ gốc | Tiếng Việt / phân loại chủ đề đơn nhãn |
 | Revision đã pin | `{DATASET_REVISIONS["VLUS06/VietOnlineNews"]}` |
+| Retrieved at | `{retrieved_at}` |
+| Hub README mô tả nguồn | VietnamNet, Thanh Niên, Tuổi Trẻ; giai đoạn 2023–2025 |
+
+Schema không có trường `source`, `url` hoặc ngày đăng ở cấp bài nên các thuộc tính này không được suy đoán cho VietOnlineNews; `published_at` được ghi `unknown`, không suy ra từ ngày tải. Dataset đối chiếu UVN-1 không được dùng làm nguồn chính: [`undertheseanlp/UVN-1`](https://huggingface.co/datasets/undertheseanlp/UVN-1), revision `{DATASET_REVISIONS["undertheseanlp/UVN-1"]}`, {uvn_rows:,} dòng, cột `{", ".join(uvn_columns)}`. Metadata UVN-1 có `publish_date` trong khoảng {uvn_date_range}; đây là thông tin metadata, không suy ra từ ngày tải.
+
+## 3. License & Access
+
+Hugging Face Hub khai báo `license: other`; không có SPDX license cụ thể. Mục `LICENSE` trong dataset repository rỗng khi kiểm tra, nên **quyền sử dụng và tái phân phối chưa được xác minh**. Cần xác nhận bằng văn bản với chủ dataset hoặc giảng viên, đồng thời kiểm tra quyền từ các nguồn báo trước khi công bố. Chỉ truy cập qua trang Hub ở trên; không xem việc tải công khai là giấy phép tái phân phối.
+
+Không commit/push tiêu đề, mô tả, toàn văn, bản dump hoặc annotation chứa trích câu nguồn lên repository công khai trong khi chưa rõ quyền. Dữ liệu toàn văn phục vụ gán nhãn chỉ lưu cục bộ; `.gitignore` loại các tệp này khỏi Git.
+
+## 4. Data Structure
+
+Schema gốc: `{", ".join(columns)}`. `category` là nhãn chủ đề gốc, không phải nhãn tóm tắt. Các split tại revision đã tải:
 
 | Split | Số dòng |
 |---|---:|
 {split_table}
+| **Tổng** | **{total_rows:,}** |
 
-Hub README mô tả dữ liệu từ VietnamNet, Thanh Niên và Tuổi Trẻ, thời gian 2023–2025. Schema được tải không có cột nguồn hoặc ngày đăng, nên không thể kiểm chứng các trường đó ở cấp từng bài từ bản này.
+Con số loader quan sát được khác Hub README (README ghi 187,682 / 40,218 / 40,218, tổng 268,118); dùng số đếm trực tiếp từ revision đã pin và ghi nhận sai khác này, chưa giải thích nguyên nhân.
 
-**Nguồn đối chiếu UVN-1 (không phải dataset chính):** [`undertheseanlp/UVN-1`](https://huggingface.co/datasets/undertheseanlp/UVN-1), revision `{DATASET_REVISIONS["undertheseanlp/UVN-1"]}`, {uvn_rows:,} dòng, cột `{", ".join(uvn_columns)}`. Metadata có trường `publish_date` với khoảng giá trị **{uvn_date_range}**; không có trường `published_at`. Khoảng ngày này lấy từ metadata của dataset, không suy ra từ ngày crawl. Hub khai báo license `CC-BY-NC-4.0`.
+## 5. Composition & Distributions
 
-## 3. Mục đích sử dụng
-
-- Phù hợp: làm nguồn bài báo cho bộ gold 60 bài của BTL, phục vụ đánh giá tóm tắt tin kinh tế và bảo toàn dữ kiện số.
-- Giới hạn: dataset gốc không cung cấp nhãn tóm tắt; `category` chỉ là nhãn chủ đề. Tóm tắt và phiếu dữ kiện do nhóm tạo, cần được đánh giá theo quy trình annotation dưới đây.
-- Chỉ dùng kết quả theo split và revision đã ghi; không suy rộng sang toàn bộ báo chí Việt Nam.
-
-## 4. License và quy tắc lưu trữ
-
-Hub gắn `license: other` cho VietOnlineNews, không phải một SPDX license cụ thể. Repo có mục `LICENSE` nhưng nội dung truy cập được trong lần kiểm tra này rỗng; vì vậy **chưa xác minh được quyền sử dụng hoặc tái phân phối**. Cần hỏi người phát hành/giảng viên và kiểm tra điều khoản của các nguồn báo trước khi công bố hay chia sẻ dữ liệu.
-
-Không commit/push `title`, `description`, `content` hoặc các bản dump CSV/Parquet/JSONL. Bộ 60 bài dùng cho annotation được lưu cục bộ trong `data/processed/selected_articles.jsonl`, có chứa toàn văn; file này cùng các annotation có trích câu nguồn được đưa vào `.gitignore` và không được đẩy công khai.
-
-## 5. Bằng chứng chất lượng và lọc bài kinh doanh
-
-### Phân bố category
-
-Split sizes quan sát được khi tải revision đã pin ở trên khác với con số split trong Hub README (README ghi 187,682 / 40,218 / 40,218, tổng 268,118). Dùng số đếm trực tiếp từ loader cho báo cáo này; cần xác minh sai khác với người phát hành trước khi so sánh theo split.
-
-| Category | Số bài | Tỷ lệ |
+| Category gốc | Số bài | Tỷ lệ |
 |---|---:|---:|
 {category_table}
 
-### Bài `Kinh doanh` có dấu hiệu số liệu
+Trong category `Kinh doanh`, số bài có ít nhất một chuỗi trong `title`, `description` hoặc `content`:
 
-Đếm bài thuộc `Kinh doanh` có ít nhất một chuỗi dưới đây trong `title`, `description` hoặc `content` (không phân biệt hoa/thường):
-
-| Chuỗi dò | Số bài khớp |
+| Chuỗi dò | Số bài |
 |---|---:|
 {marker_table}
 | **Khớp ít nhất một chuỗi (duy nhất)** | **{economic_match_count:,}** |
 
-Đây là bộ lọc từ khóa thô, không khẳng định bài có số liệu tài chính hợp lệ (đặc biệt `quý` có thể mang nghĩa khác). Danh sách ID, không có nội dung bài: [`{ids_path}`]({ids_path}).
+Đây là phép dò từ khóa thô, không chứng minh bài có số liệu tài chính hợp lệ. Danh sách kết quả chỉ gồm ID: [`{ids_path}`]({ids_path}).
 
-## 6. Tái lập
+## 6. Collection & Sampling
 
-Chạy `python scripts/inspect_news_datasets.py` từ thư mục `BTL` sau khi cài `datasets`. Script tải theo revision đã pin, in schema/số dòng/phân bố, cập nhật Data Card và ghi danh sách ID khớp cùng metadata schema; không lưu nội dung bài. Các phần annotation-process và lịch sử test bắt đầu từ mục 7 được giữ lại khi Data Card được tái tạo.
+Từ 265,729 dòng gốc, giữ 39,878 bài thuộc `Kinh doanh` hoặc `Bất động sản`; loại 155 tiêu đề trùng, 12,712 bài ngoài khoảng 250–900 từ, lấy pool ngẫu nhiên 4,000 bài (seed 42), loại 27 bài gần trùng theo TF-IDF cosine ≥0.8, rồi chọn 60 bài đa dạng chủ đề và tránh bài cùng sự kiện với cosine ≥0.4. Mẫu cuối có 52 bài category `Kinh doanh`, 8 `Bất động sản`; chia 10 dev / 50 test; 48 bài có ít nhất 4 ứng viên số liệu regex (8 dev, 40 test), 12 bài dưới ngưỡng (2 dev, 10 test). Phân bố topic rule-based: `bat_dong_san` 7, `chung_khoan` 7, `doanh_nghiep` 8, `hang_hoa` 8, `khac` 8, `tien_te_ngan_hang` 7, `vi_mo` 7, `xuat_nhap_khau` 8. `khac` là nhãn fallback, không có nghĩa bài chắc chắn phi kinh tế. Quy trình không lấy mẫu đại diện cho toàn bộ dataset.
 """
 
 
