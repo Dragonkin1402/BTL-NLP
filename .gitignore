@@ -1,0 +1,9 @@
+/data/*.csv
+/data/*.parquet
+/data/*.json
+/data/*.jsonl
+/data/*.arrow
+/data/processed/selected_articles.jsonl
+/data/processed/numeric_facts_audit.csv
+/data/annotations/gold_summaries.csv
+/reports/data_quality_report.md
