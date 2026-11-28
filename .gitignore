@@ -11,6 +11,12 @@
 /data/annotations/review_log.csv
 /reports/data_quality_report.md
 /reports/excluded_items.csv
+/reports/experiments.csv
+/reports/*_predictions_*.csv
+/reports/*_numeric_claims_*.csv
+/reports/*_ollama_predictions_*.csv
+/reports/raw_ollama_calls_*.jsonl
+/reports/ollama_run_*.json
 *.pdf
 __pycache__/
 *.py[cod]

@@ -5,8 +5,8 @@ Script chuẩn bị dữ liệu: lọc -> làm sạch -> loại trùng -> chọn
 
 Chạy:
     pip install datasets pandas scikit-learn
-    python src/prepare_data.py                      # mặc định: 60 bài (10 dev / 50 test)
-    python src/prepare_data.py --n 60 --n-dev 10 --seed 42
+    python data/prepare_data.py                     # mặc định: 60 bài (10 dev / 50 test)
+    python data/prepare_data.py --n 60 --n-dev 10 --seed 42
 
 Đầu ra (trong thư mục --out, mặc định "."):
     data/processed/selected_articles.jsonl    (CÓ TOÀN VĂN -> KHÔNG đẩy lên repo công khai)
@@ -300,8 +300,8 @@ def main():
     pd.DataFrame({
         "item_id": sel.item_id, "document_id": sel.id, "source_name": REPO, "source_url": SOURCE_URL,
         "source_version": a.revision, "retrieved_at": RETRIEVED_AT, "published_at": "unknown",
-        "language": "vi", "original_category": sel.category, "task_label": "summary_reference_pending",
-        "license_status": "TO_VERIFY", "split": sel.split,
+        "language": "vi", "original_category": sel.category, "task_label": "summary_reference_v1.0",
+        "license_status": "OTHER_UNVERIFIED", "split": sel.split,
         "notes": [f"topic={t};n_facts={n};n_words={w};has_numbers={h};hf_split={s}"
                   for t, n, w, h, s in zip(sel.topic, sel.n_facts, sel.n_words, sel.has_numbers, sel.hf_split)],
     }).to_csv(out / "data/data_manifest.csv", index=False, encoding="utf-8-sig")
@@ -334,11 +334,11 @@ def main():
         out / "reports/excluded_items.csv", index=False, encoding="utf-8-sig")
 
     # 8. Báo cáo chất lượng dữ liệu (tự sinh) ---------------------------------
-    L = ["# Data Quality Report (tự sinh bởi src/prepare_data.py)", "",
+    L = ["# Data Quality Report (tự sinh bởi data/prepare_data.py)", "",
          f"- Dataset: `{REPO}` | revision: `{a.revision}` | retrieved_at: {RETRIEVED_AT}",
          f"- Seed: {a.seed} | guideline: {GUIDELINE_VERSION}",
          "- `published_at` = unknown (dataset không có cột ngày đăng; không suy ra từ ngày tải).",
-         "- license_status = TO_VERIFY: cần đọc license trên trang dataset và ghi vào data_card.md.", "",
+         "- license_status = OTHER_UNVERIFIED: Hub khai báo `other`, nhưng quyền sử dụng/tái phân phối chưa được xác minh.", "",
          "## 1. Kiểm đếm trước/sau từng bước", "", "| Bước | Số bị loại | Còn lại |", "|---|---:|---:|"]
     L += [f"| {r} | {x} | {y} |" for r, x, y in steps]
     L += ["", "Danh sách ID bị loại và lý do: `reports/excluded_items.csv`.", "",
@@ -362,18 +362,23 @@ def main():
           f"- Bài có số kiểu dấu chấm thập phân (vd 3.2%) cần xem tay: {int(sel.flag_dot_decimal_pct.sum())} "
           f"-> {', '.join(sel.loc[sel.flag_dot_decimal_pct, 'item_id']) or 'không có'}",
           f"- Bài ít/không có số liệu: {int((~sel.has_numbers).sum())}",
-          "- Rà soát số liệu: mở `data/processed/numeric_facts_audit.csv`, kiểm tra tay (3,2% không được thành 32%).",
+          "- Rà soát số liệu: các biểu thức regex chỉ tạo ứng viên; cần đối chiếu ngữ cảnh, đơn vị, kỳ và ý nghĩa. Mẫu kiểm tra nằm ở mục 7.",
           "", "## 5. Chống rò rỉ (leakage)", "",
           f"- Gần trùng loại bỏ ở ngưỡng cosine {a.dup_sim}; khi chọn mẫu, không chọn 2 bài có cosine >= {a.event_sim} "
           "(tránh cùng sự kiện nằm ở cả dev và test).",
           "- Mỗi bài chỉ xuất hiện đúng một lần (một bài = một mẫu, không chia chunk).",
           "- Giới hạn: kiểm tra trùng chỉ thực hiện trong pool ngẫu nhiên, không trên toàn bộ dataset; TF-IDF không "
-          "bắt được bài viết lại bằng từ ngữ khác. Cần đọc lướt tay danh sách tiêu đề bên dưới.",
+          "bắt được bài viết lại bằng từ ngữ khác. Mẫu rà cặp tiêu đề và cảnh báo loại nhầm được ghi ở mục 7.",
           "", "## 6. Danh sách bài đã chọn", "",
           "| item_id | document_id | split | chủ đề | số từ | số dữ kiện | tiêu đề |", "|---|---|---|---|---:|---:|---|"]
     for _, r in sel.iterrows():
         L.append(f"| {r.item_id} | {r.id} | {r.split} | {r.topic} | {r.n_words} | {r.n_facts} | {r.title[:70].replace('|', '/')} |")
-    (out / "reports/data_quality_report.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    report_path = out / "reports/data_quality_report.md"
+    previous_report = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
+    manual_start = previous_report.find("\n## 7. Kiểm tra thủ công")
+    if manual_start >= 0:
+        L.extend(["", previous_report[manual_start + 1:].rstrip()])
+    report_path.write_text("\n".join(L) + "\n", encoding="utf-8")
 
     print(f"Xong: {len(sel)} bài (dev {(sel.split == 'dev').sum()}, test {(sel.split == 'test').sum()}).")
     print("Mở reports/data_quality_report.md để xem thống kê; đọc tay danh sách tiêu đề để kiểm tra trùng sự kiện.")
